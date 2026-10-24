@@ -5,26 +5,11 @@ mod desktop {
     use std::sync::Mutex;
     use std::time::{Duration, Instant};
     use tauri::Manager;
-    use tauri_plugin_shell::process::{Child, CommandEvent};
+    use tauri_plugin_shell::process::CommandChild;
     use tauri_plugin_shell::ShellExt;
 
-    /// 内置 Node 服务（Next standalone）由 sidecar 承载，退出时随应用一起结束
-    pub struct ServerChild(pub Mutex<Option<Child>>);
-
-    fn wait_server_ready(port: u16, deadline: Instant, rx: &mut impl Iterator<Item = CommandEvent>) -> bool {
-        while Instant::now() < deadline {
-            if std::net::TcpStream::connect(("127.0.0.1", port)).is_ok() {
-                return true;
-            }
-            if let Ok(Some(CommandEvent::Terminated(_))) = rx.try_recv() {
-                eprintln!("[LittleSU] 内置服务进程提前退出");
-                return false;
-            }
-            std::thread::sleep(Duration::from_millis(250));
-        }
-        eprintln!("[LittleSU] 等待内置服务启动超时");
-        false
-    }
+    /// 内置 Node 服务（Next standalone）由 sidecar 承载，应用退出时随之结束
+    pub struct ServerChild(pub Mutex<Option<CommandChild>>);
 
     pub fn setup(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         let port: u16 = std::env::var("LITTLESU_PORT")
@@ -48,20 +33,35 @@ mod desktop {
 
         let handle = app.handle().clone();
         std::thread::spawn(move || {
+            // 轮询端口等待内置服务监听（30s 死线）；期间不消费事件流
             let deadline = Instant::now() + Duration::from_secs(30);
-            let ready = wait_server_ready(port, deadline, &mut rx);
+            let mut ready = false;
+            while Instant::now() < deadline {
+                if std::net::TcpStream::connect(("127.0.0.1", port)).is_ok() {
+                    ready = true;
+                    break;
+                }
+                std::thread::sleep(Duration::from_millis(250));
+            }
+            if !ready {
+                eprintln!("[LittleSU] 等待内置服务启动超时");
+            }
+            let url: tauri::Url = format!("http://127.0.0.1:{port}").parse().expect("bad url");
             let _ = handle.run_on_main_thread(move || {
-                let url: tauri::Url = format!("http://127.0.0.1:{port}").parse().expect("bad url");
-                let win = tauri::WebviewWindowBuilder::new(&handle, "main", tauri::WebviewUrl::External(url))
-                    .title("LittleSU TV")
-                    .inner_size(1280.0, 860.0)
-                    .min_inner_size(960.0, 640.0);
+                let win = tauri::WebviewWindowBuilder::new(
+                    &handle,
+                    "main",
+                    tauri::WebviewUrl::External(url),
+                )
+                .title("LittleSU TV")
+                .inner_size(1280.0, 860.0)
+                .min_inner_size(960.0, 640.0);
                 if let Err(e) = win.build() {
                     eprintln!("[LittleSU] 创建窗口失败: {e}");
                 }
             });
-            // 持续消费事件流，保持对子进程的监视
-            while let Ok(Some(_)) = rx.recv() {}
+            // 持续消费事件流直至 sidecar 退出（保持接收端存活）
+            while let Ok(_event) = rx.blocking_recv() {}
         });
         Ok(())
     }
@@ -69,10 +69,9 @@ mod desktop {
     pub fn kill_server(app: &tauri::AppHandle) {
         if let Some(state) = app.try_state::<ServerChild>() {
             if let Ok(mut guard) = state.0.lock() {
-                if let Some(child) = guard.as_mut() {
+                if let Some(child) = guard.take() {
                     let _ = child.kill();
                 }
-                *guard = None;
             }
         }
     }
@@ -100,7 +99,7 @@ pub fn run() {
 }
 
 /// 安卓端不内置服务（Node 无法跑在移动端），直接加载远程站点。
-/// 站点地址在构建期通过 LITTLESU_REMOTE_URL 注入。
+/// 站点地址在构建期通过 LITTLESU_REMOTE_URL 注入（CI 仓库变量 ANDROID_REMOTE_URL）。
 #[cfg(target_os = "android")]
 fn android_setup(app: &tauri::App) -> tauri::Result<()> {
     let url_str = match option_env!("LITTLESU_REMOTE_URL") {
