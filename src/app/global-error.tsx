@@ -30,6 +30,10 @@ export default function GlobalError({
         }}
       >
         <p style={{ margin: 0, fontSize: 14 }}>应用发生严重错误，请刷新页面重试。</p>
+        {/* 展示具体错误便于排查（如旧 WebView 缺 API） */}
+        <p style={{ margin: 0, fontSize: 12, color: '#7a8ca6', maxWidth: 560, wordBreak: 'break-all' }}>
+          {error.message || String(error)}
+        </p>
         <button
           onClick={reset}
           style={{

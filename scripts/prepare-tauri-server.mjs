@@ -26,6 +26,18 @@ fs.rmSync(dest, { recursive: true, force: true });
 fs.cpSync(path.join(root, '.next', 'standalone'), dest, { recursive: true });
 fs.cpSync(path.join(root, '.next', 'static'), path.join(dest, '.next', 'static'), { recursive: true });
 fs.cpSync(path.join(root, 'public'), path.join(dest, 'public'), { recursive: true });
+// 服务器运行时读取 cwd 下的 .env（standalone 已验证支持）；CI 无 .env 时写入默认源，
+// 保证发布出去的安装包开箱即有数据源
+const envFile = path.join(root, '.env');
+if (fs.existsSync(envFile)) {
+  fs.copyFileSync(envFile, path.join(dest, '.env'));
+} else {
+  const fallbackEnv =
+    '# CI 构建内置默认源（可在应用设置中增删）\n' +
+    'DEFAULT_SOURCES=[{"name":"量子资源","url":"https://cj.lziapi.com/api.php/provide/vod"},{"name":"非凡资源","url":"https://cj.ffzyapi.com/api.php/provide/vod"},{"name":"暴风资源","url":"https://bfzyapi.com/api.php/provide/vod"},{"name":"360资源","url":"https://360zy.com/api.php/provide/vod"}]\n' +
+    'DEFAULT_LIVE_SOURCES=[{"name":"IPTV·中国","url":"https://iptv-org.github.io/iptv/countries/cn.m3u","epg":"https://epg.pw/xmltv/epg_CN.xml"}]\n';
+  fs.writeFileSync(path.join(dest, '.env'), fallbackEnv);
+}
 
 console.log('[3/3] 拷贝 Node 运行时为 sidecar…');
 const triple = 'x86_64-pc-windows-msvc';

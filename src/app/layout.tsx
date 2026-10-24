@@ -33,6 +33,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="zh-CN" suppressHydrationWarning>
       <head>
+        {/* 旧 WebView polyfill：在所有应用脚本之前补齐缺失的现代 API，
+            否则旧系统 WebView 会在模块初始化时直接抛 TypeError 白屏 */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){if(typeof Promise!=='undefined'&&!Promise.withResolvers){Promise.withResolvers=function(){var o={};o.promise=new Promise(function(r,j){o.resolve=r;o.reject=j});return o}}if(!Object.hasOwn){Object.hasOwn=function(o,k){return Object.prototype.hasOwnProperty.call(o,k)}}if(typeof crypto!=='undefined'&&typeof crypto.randomUUID==='undefined'&&typeof crypto.getRandomValues==='function'){crypto.randomUUID=function(){return('10000000-1000-4000-8000-100000000000').replace(/[018]/g,function(c){var v=Number(c);return(v^crypto.getRandomValues(new Uint8Array(1))[0]&15>>v/4).toString(16)})}}})();",
+          }}
+        />
         {/* 首屏前同步主题，避免亮暗闪烁 */}
         <script
           dangerouslySetInnerHTML={{
