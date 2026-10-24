@@ -26,7 +26,7 @@ mod desktop {
         false
     }
 
-    pub fn setup(app: &tauri::App) -> tauri::Result<()> {
+    pub fn setup(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         let port: u16 = std::env::var("LITTLESU_PORT")
             .ok()
             .and_then(|p| p.parse().ok())
