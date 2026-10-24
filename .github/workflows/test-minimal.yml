@@ -10,4 +10,8 @@ jobs:
   probe:
     runs-on: ubuntu-24.04
     steps:
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
       - run: echo ok
