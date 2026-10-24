@@ -29,8 +29,11 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: 安装 Android NDK（runner 已预装 SDK 与 cmdline-tools）
-        run: sdkmanager --install "ndk;26.3.11579264" >/dev/null
+      - name: 安装 Android NDK（runner 已预装 SDK，用绝对路径调 sdkmanager）
+        run: |
+          ls "$ANDROID_HOME" || echo "ANDROID_HOME 不存在"
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "ndk;26.3.11579264" >/dev/null
+          echo "NDK_HOME=$ANDROID_HOME/ndk/26.3.11579264" >> "$GITHUB_ENV"
 
       - uses: dtolnay/rust-toolchain@stable
         with:
