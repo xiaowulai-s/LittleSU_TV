@@ -1,0 +1,81 @@
+name: android-build
+
+# 构建安卓 APK（连接模式：App 加载 ANDROID_REMOTE_URL 指向的站点）。
+# 触发：推送 v* 标签或在 Actions 页面手动触发。
+# 远程站点地址在仓库 Variables 里配置：Settings → Secrets and variables → Actions → Variables → ANDROID_REMOTE_URL
+# 未配置时回退到 http://127.0.0.1:8080（仅本机调试用）。
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: 安装 Android NDK
+        run: sdkmanager --install "ndk;26.3.11579264" >/dev/null
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - run: npm ci
+
+      - name: 生成签名密钥（首次构建自签名，正式发布请换成固定 keystore）
+        run: |
+          keytool -genkeypair -v -keystore "$GITHUB_WORKSPACE/release.keystore" \
+            -alias littlesu -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass littlesu123 -keypass littlesu123 \
+            -dname "CN=LittleSU TV, OU=LittleSU, O=xiaowulai-s"
+          {
+            echo "TAURI_ANDROID_KEYSTORE_PATH=$GITHUB_WORKSPACE/release.keystore"
+            echo "TAURI_ANDROID_KEYSTORE_PASSWORD=littlesu123"
+            echo "TAURI_ANDROID_KEY_ALIAS=littlesu"
+            echo "TAURI_ANDROID_KEY_PASSWORD=littlesu123"
+          } >> "$GITHUB_ENV"
+
+      - name: 初始化 Android 工程
+        run: npx tauri android init
+        env:
+          LITTLESU_REMOTE_URL: ${{ vars.ANDROID_REMOTE_URL }}
+
+      - name: 构建 APK（aarch64）
+        run: npx tauri android build --apk --target aarch64
+        env:
+          LITTLESU_REMOTE_URL: ${{ vars.ANDROID_REMOTE_URL }}
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: littlesu-tv-android-apk
+          path: src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+          if-no-files-found: error
+
+      - name: 附加 APK 到 GitHub Release（仅 tag 构建）
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: src-tauri/gen/android/app/build/outputs/apk/**/*.apk

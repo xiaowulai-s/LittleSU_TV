@@ -12,3 +12,8 @@ vitest-results.json
 .zcode/
 .codebuddy/
 generated-images/
+# Tauri 构建产物
+/src-tauri/target
+/src-tauri/binaries
+/src-tauri/resources
+/src-tauri/gen
