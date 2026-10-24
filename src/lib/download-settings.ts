@@ -5,7 +5,7 @@
  * 共用一个 key 会让「清空视频缓存」之类的操作意外重置下载偏好。
  */
 
-const SETTINGS_KEY = 'libretv-download-settings';
+const SETTINGS_KEY = 'littlesu-download-settings';
 
 export interface DownloadSettings {
   /**

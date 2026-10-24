@@ -98,8 +98,8 @@ jobs:
         run: |
           VER="$(node -p "require('./package.json').version")"
           mkdir -p dist
-          tar -czf "dist/libretv-${VER}-standalone.tar.gz" -C .next/standalone .
-          (cd dist && sha256sum libretv-*.tar.gz > SHA256SUMS)
+          tar -czf "dist/littlesu-tv-${VER}-standalone.tar.gz" -C .next/standalone .
+          (cd dist && sha256sum littlesu-tv-*.tar.gz > SHA256SUMS)
           ls -lh dist
 
       - name: 上传构建产物
@@ -136,7 +136,7 @@ jobs:
 
           # 镜像名与 docker-publish 保持一致：GHCR 按仓库全名转小写，Docker Hub 固定
           GHCR="ghcr.io/${GITHUB_REPOSITORY,,}"
-          HUB="docker.io/bestzwei/libretv"
+          HUB="docker.io/xiaowulai-s/littlesu-tv"
           PREV="$(git describe --tags --abbrev=0 "${TAG}^" 2> /dev/null || true)"
           # 写到 RUNNER_TEMP，不落在工作区（避免本地复现时在仓库里留文件）
           NOTES="${RUNNER_TEMP}/release-notes.md"
@@ -157,7 +157,7 @@ jobs:
             echo
             echo '```bash'
             echo "sha256sum -c SHA256SUMS"
-            echo "tar -xzf libretv-${VER}-standalone.tar.gz -C libretv"
+            echo "tar -xzf littlesu-tv-${VER}-standalone.tar.gz -C libretv"
             echo "cd libretv && PASSWORD=your-password PORT=8080 node server.js"
             echo '```'
             echo

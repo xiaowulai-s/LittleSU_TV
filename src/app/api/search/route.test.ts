@@ -193,13 +193,14 @@ describe('POST /api/search', () => {
     expect(await fresh.json()).toEqual({ list: [], failures: [] });
   });
 
-  it('未登录返回 401，未配置密码返回 503', async () => {
+  it('未配置密码进入公开模式放行（200），已配置密码未登录返回 401', async () => {
     vi.stubGlobal('fetch', vi.fn());
     const saved = process.env.PASSWORD;
     delete process.env.PASSWORD;
     try {
-      const noPassword = await POST(makeRequest({ wd: 'x', sources: SOURCES }));
-      expect(noPassword.status).toBe(503);
+      // 公开模式：不设 PASSWORD 时守卫直接放行，请求正常进入业务流程
+      const publicMode = await POST(makeRequest({ wd: 'x', sources: SOURCES }));
+      expect(publicMode.status).toBe(200);
     } finally {
       process.env.PASSWORD = saved;
     }

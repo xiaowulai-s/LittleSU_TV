@@ -70,7 +70,7 @@ export interface DownloadTaskEntry {
   updatedAt: number;
 }
 
-export const db = new Dexie('libretv') as Dexie & {
+export const db = new Dexie('littlesu') as Dexie & {
   history: EntityTable<HistoryEntry, 'id'>;
   progress: EntityTable<ProgressEntry, 'key'>;
   searchHistory: EntityTable<SearchHistoryEntry, 'text'>;
@@ -206,7 +206,7 @@ export async function clearLiveProbeResultsDb(): Promise<void> {
   await db.liveProbe.clear();
 }
 
-// —— 配置导入导出（兼容旧版 LibreTV-Settings JSON 结构的导出格式） ——
+// —— 配置导入导出（同时兼容 LittleSU-Settings 与旧版 LibreTV-Settings JSON 结构） ——
 
 export async function exportConfig(): Promise<string> {
   // 导出前 flush：把节流缓冲中的最新设置落盘，避免导出的是 800ms 前的旧快照
@@ -220,7 +220,7 @@ export async function exportConfig(): Promise<string> {
   if (settings) data[PERSIST_KEY] = settings;
 
   return JSON.stringify({
-    name: 'LibreTV-Settings',
+    name: 'LittleSU-Settings',
     time: Date.now().toString(),
     cfgVer: '2.0.0',
     data,
@@ -232,14 +232,17 @@ export async function importConfig(content: string): Promise<void> {
     name?: string;
     data?: Record<string, string>;
   };
-  if (config.name !== 'LibreTV-Settings') throw new Error('配置文件格式不正确');
+  if (config.name !== 'LittleSU-Settings' && config.name !== 'LibreTV-Settings')
+    throw new Error('配置文件格式不正确');
   const data = config.data || {};
+  // 旧版 LibreTV 导出的配置文件使用旧键名，导入时回退读取
+  const settingsValue = data[PERSIST_KEY] ?? data['libretv-settings'];
 
-  if (typeof data[PERSIST_KEY] === 'string') {
+  if (typeof settingsValue === 'string') {
     // 关键：先 flush 节流缓冲中的旧状态再写导入配置，否则缓冲会在
     // 之后 flush 时用导入前的旧状态覆盖刚写入的配置（导入静默丢失）
     flushPendingPersist();
-    localStorage.setItem(PERSIST_KEY, data[PERSIST_KEY]);
+    localStorage.setItem(PERSIST_KEY, settingsValue);
   }
 
   if (typeof data['viewingHistory'] === 'string') {

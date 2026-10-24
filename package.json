@@ -1,9 +1,15 @@
 {
-  "name": "libretv",
-  "version": "2.21.0",
+  "name": "littlesu-tv",
+  "version": "0.1.0",
   "private": true,
-  "description": "免费在线视频搜索与观看平台（Next.js 重构版）",
+  "description": "LittleSU TV — 免费在线视频搜索与观看平台",
   "license": "AGPL-3.0-or-later",
+  "author": "xiaowulai-s",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xiaowulai-s/LittleSU_TV.git"
+  },
+  "homepage": "https://github.com/xiaowulai-s/LittleSU_TV#readme",
   "scripts": {
     "dev": "next dev -p 8080",
     "build": "next build",

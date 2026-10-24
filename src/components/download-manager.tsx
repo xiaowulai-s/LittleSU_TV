@@ -27,9 +27,9 @@ import { Switch } from './settings-shared';
 const MAX_CONCURRENT_DOWNLOADS = 3;
 /** 进度落库节流间隔：整集动辄上千分片，逐片「写库 + 全量查询 + setState」会把长任务页面拖垮 */
 const PROGRESS_PERSIST_INTERVAL_MS = 1000;
-const ADD_TASK_EVENT = 'libretv:add-download';
-const SHOW_MANAGER_EVENT = 'libretv:show-download-manager';
-export const DOWNLOADS_UPDATED_EVENT = 'libretv:downloads-updated';
+const ADD_TASK_EVENT = 'littlesu:add-download';
+const SHOW_MANAGER_EVENT = 'littlesu:show-download-manager';
+export const DOWNLOADS_UPDATED_EVENT = 'littlesu:downloads-updated';
 
 export interface AddDownloadPayload {
   url: string;

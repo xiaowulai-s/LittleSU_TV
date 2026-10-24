@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/components/auth';
 
-/** 上游仓库最新 tag（即最新版本号），用于页脚的更新检测 */
-const UPSTREAM_TAGS_API = 'https://api.github.com/repos/LibreSpark/LibreTV/tags?per_page=1';
+/** 本仓库最新 tag（即最新版本号），用于页脚的更新检测 */
+const UPSTREAM_TAGS_API = 'https://api.github.com/repos/xiaowulai-s/LittleSU_TV/tags?per_page=1';
 
 /** 页脚版本号的更新检测结果；null 表示无需检测（本地 dev 构建） */
 type UpstreamUpdate = { status: 'checking' | 'latest' | 'newer'; latest?: string };
@@ -93,16 +93,28 @@ export function SiteFooter() {
     <footer className="border-t border-line py-4">
       <p className="text-center text-xs text-faint">
         <a
-          href="https://github.com/LibreSpark/LibreTV"
+          href="https://github.com/xiaowulai-s/LittleSU_TV"
           target="_blank"
           rel="noopener noreferrer"
           className="group relative inline-block cursor-help hover:text-accent"
         >
-          LibreTV{version ? ` v${version}` : ''}
+          LittleSU TV{version ? ` v${version}` : ''}
           {version && <UpdateTip update={upstreamUpdate} />}
         </a>
         {' · '}
         AGPL-3.0 License
+        {' · '}
+        基于{' '}
+        <a
+          href="https://github.com/LibreSpark/LibreTV"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:text-accent"
+        >
+          LibreTV
+        </a>
+        {' '}
+        开源修改
       </p>
     </footer>
   );
