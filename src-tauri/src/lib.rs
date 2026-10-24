@@ -61,7 +61,7 @@ mod desktop {
                 }
             });
             // 持续消费事件流直至 sidecar 退出（保持接收端存活）
-            while let Ok(_event) = rx.blocking_recv() {}
+            while let Some(_event) = rx.blocking_recv() {}
         });
         Ok(())
     }
