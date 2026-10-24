@@ -17,6 +17,8 @@ jobs:
   apk:
     # 钉住镜像版本：ubuntu-latest 标签滚动曾导致本工作流 startup_failure
     runs-on: ubuntu-24.04
+    env:
+      ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
     steps:
       - uses: actions/checkout@v4
 
@@ -48,8 +50,8 @@ jobs:
 
       - name: 准备签名密钥（优先用 Secret 中的固定 keystore，保证升级签名一致）
         run: |
-          if [ -n "${{ secrets.ANDROID_KEYSTORE_B64 }}" ]; then
-            echo "${{ secrets.ANDROID_KEYSTORE_B64 }}" | base64 -d > "$GITHUB_WORKSPACE/release.keystore"
+          if [ -n "$ANDROID_KEYSTORE_B64" ]; then
+            echo "$ANDROID_KEYSTORE_B64" | base64 -d > "$GITHUB_WORKSPACE/release.keystore"
             echo "使用 Secret 中持久化的 keystore"
           else
             keytool -genkeypair -v -keystore "$GITHUB_WORKSPACE/release.keystore" \
