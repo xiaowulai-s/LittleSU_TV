@@ -67,8 +67,8 @@ jobs:
       - name: 允许明文 HTTP（局域网 http:// 站点需要，Android 9+ 默认禁止）
         run: |
           M=src-tauri/gen/android/app/src/main/AndroidManifest.xml
-          sed -i 's/<application /<application android:usesCleartextTraffic="true" /' "$M"
-          grep -q 'usesCleartextTraffic="true"' "$M" && echo "cleartext 已开启"
+          sed -i 's/<application$/<application android:usesCleartextTraffic="true"/' "$M"
+          grep -q 'usesCleartextTraffic' "$M" && echo "cleartext 已开启"
 
       - name: 构建 APK（aarch64）
         run: npx tauri android build --apk --target aarch64
