@@ -48,19 +48,9 @@ jobs:
 
       - run: npm ci
 
-      - name: 准备签名密钥（优先用 Secret 中的固定 keystore，保证升级签名一致）
+      - name: 生成签名密钥
         run: |
-          if [ -n "$ANDROID_KEYSTORE_B64" ]; then
-            echo "$ANDROID_KEYSTORE_B64" | base64 -d > "$GITHUB_WORKSPACE/release.keystore"
-            echo "使用 Secret 中持久化的 keystore"
-          else
-            keytool -genkeypair -v -keystore "$GITHUB_WORKSPACE/release.keystore" \
-              -alias littlesu -keyalg RSA -keysize 2048 -validity 10000 \
-              -storepass littlesu123 -keypass littlesu123 \
-              -dname "CN=LittleSU TV, OU=LittleSU, O=xiaowulai-s"
-            echo "未配置 ANDROID_KEYSTORE_B64，本次使用临时 keystore（上传为产物，供一次性固化）"
-            cp "$GITHUB_WORKSPACE/release.keystore" release.keystore.artifact
-          fi
+          keytool -genkeypair -v -keystore "$GITHUB_WORKSPACE/release.keystore" -alias littlesu -keyalg RSA -keysize 2048 -validity 10000 -storepass littlesu123 -keypass littlesu123 -dname "CN=LittleSU TV"
 
       - name: 初始化 Android 工程
         run: npx tauri android init
