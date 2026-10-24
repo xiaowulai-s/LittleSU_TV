@@ -47,9 +47,10 @@ mod desktop {
                 eprintln!("[LittleSU] 等待内置服务启动超时");
             }
             let url: tauri::Url = format!("http://127.0.0.1:{port}").parse().expect("bad url");
+            let win_handle = handle.clone();
             let _ = handle.run_on_main_thread(move || {
                 let win = tauri::WebviewWindowBuilder::new(
-                    &handle,
+                    &win_handle,
                     "main",
                     tauri::WebviewUrl::External(url),
                 )
