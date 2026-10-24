@@ -15,7 +15,8 @@ permissions:
 
 jobs:
   apk:
-    runs-on: ubuntu-latest
+    # 钉住镜像版本：ubuntu-latest 标签滚动曾导致本工作流 startup_failure
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
