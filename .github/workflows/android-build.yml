@@ -45,17 +45,30 @@ jobs:
 
       - run: npm ci
 
-      - name: 生成签名密钥（首次构建自签名，正式发布请换成固定 keystore）
+      - name: 准备签名密钥（优先用 Secret 中的固定 keystore，保证升级签名一致）
         run: |
-          keytool -genkeypair -v -keystore "$GITHUB_WORKSPACE/release.keystore" \
-            -alias littlesu -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass littlesu123 -keypass littlesu123 \
-            -dname "CN=LittleSU TV, OU=LittleSU, O=xiaowulai-s"
+          if [ -n "${{ secrets.ANDROID_KEYSTORE_B64 }}" ]; then
+            echo "${{ secrets.ANDROID_KEYSTORE_B64 }}" | base64 -d > "$GITHUB_WORKSPACE/release.keystore"
+            echo "使用 Secret 中持久化的 keystore"
+          else
+            keytool -genkeypair -v -keystore "$GITHUB_WORKSPACE/release.keystore" \
+              -alias littlesu -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass littlesu123 -keypass littlesu123 \
+              -dname "CN=LittleSU TV, OU=LittleSU, O=xiaowulai-s"
+            echo "未配置 ANDROID_KEYSTORE_B64，本次使用临时 keystore（上传为产物，供一次性固化）"
+            cp "$GITHUB_WORKSPACE/release.keystore" release.keystore.artifact
+          fi
 
       - name: 初始化 Android 工程
         run: npx tauri android init
         env:
           LITTLESU_REMOTE_URL: ${{ vars.ANDROID_REMOTE_URL }}
+
+      - name: 允许明文 HTTP（局域网 http:// 站点需要，Android 9+ 默认禁止）
+        run: |
+          M=src-tauri/gen/android/app/src/main/AndroidManifest.xml
+          sed -i 's/<application /<application android:usesCleartextTraffic="true" /' "$M"
+          grep -q 'usesCleartextTraffic="true"' "$M" && echo "cleartext 已开启"
 
       - name: 构建 APK（aarch64）
         run: npx tauri android build --apk --target aarch64
@@ -83,6 +96,13 @@ jobs:
           name: littlesu-tv-android-apk
           path: LittleSU-TV-android.apk
           if-no-files-found: error
+
+      - name: 上传临时 keystore（供首次固化为 Secret）
+        if: hashFiles('release.keystore.artifact') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: littlesu-tv-keystore
+          path: release.keystore.artifact
 
       - name: 附加 APK 到 GitHub Release（仅 tag 构建）
         if: startsWith(github.ref, 'refs/tags/v')
