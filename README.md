@@ -82,6 +82,23 @@ DEFAULT_LIVE_SOURCES=[{"name":"IPTV·中国","url":"https://iptv-org.github.io/i
 - 服务端对所有用户提交的 URL 做 SSRF 校验（协议白名单 + 内网/保留地址拦截）
 - 观看历史与设置仅存于本地浏览器，服务端不存储用户数据
 
+## 独立客户端（桌面 / 安卓）
+
+除网页版外，本项目同时发布**完全独立**的客户端：搜索与解析内置，无需部署任何服务器。
+
+| 平台 | 获取方式 |
+|---|---|
+| Android | Release 中的 `LittleSU-TV-v*-android-universal.apk`，下载安装即可 |
+| Windows / macOS / Linux | [LittleSU-TV-App](https://github.com/xiaowulai-s/LittleSU-TV-App/releases) 仓库的 Release |
+
+客户端特性：
+
+- **独立直连**：通过 Tauri 原生 HTTP 直连资源站，无 CORS 限制，不依赖本项目网页版的任何服务端
+- **桌面端应用内自动更新**：v1.2.0 起内置 updater，启动时自动检查新版本并一键升级
+- **安卓端更新提醒**：启动时比对 GitHub 最新版本，弹窗引导下载
+
+客户端源码位于姊妹仓库 [LittleSU-TV-App](https://github.com/xiaowulai-s/LittleSU-TV-App)（基于 LibreTV-App）。
+
 ## 免责声明
 
 本项目不存储、不制作、不上传任何视频内容，仅提供第三方公开接口的聚合与播放能力。

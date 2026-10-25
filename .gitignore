@@ -17,3 +17,23 @@ generated-images/
 /src-tauri/binaries
 /src-tauri/resources
 /src-tauri/gen
+
+.vercel
+
+.vercel
+.env*
+
+# Tencent Cloud EdgeOne
+.env
+.edgeone/*
+.tef_dist/*
+  
+# Local Netlify folder
+.netlify
+
+# 签名私钥与独立 APP 仓库（绝不入库）
+/signing/
+/LibreTV-App/
+
+# 临时调试文件
+*.log
