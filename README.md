@@ -1,4 +1,10 @@
-# LittleSU TV
+# LittleSU TV（已归档）
+
+> **本仓库已于 2026-10-26 归档。**
+>
+> 网页版与独立客户端已合并到单仓库 [xiaowulai-s/LittleSU](https://github.com/xiaowulai-s/LittleSU)：网页版源码位于 `apps/web`，独立客户端位于 `apps/app`。
+>
+> 本仓库仅保留只读的历史提交与旧 Release，不再接受更新。新版本、问题反馈与下载请前往新仓库。
 
 免费在线视频搜索与观看平台：输入片名，即可在多个点播采集源中聚合搜索并在线播放。基于 Next.js 15（App Router）+ TypeScript + Tailwind CSS，播放内核为 ArtPlayer + hls.js。
 
